@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:fiberchat/Models/call.dart';
 import 'package:fiberchat/Models/call_methods.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 class CallUtils {
   static final CallMethods callMethods = CallMethods();
 
@@ -23,17 +24,25 @@ class CallUtils {
       bool? isvideocall,
       required String? currentuseruid,
       context}) async {
-    print('in dial');
+    print('in dial' + fromUID.toString());
+    print('in dial' + fromFullname.toString());
+    print('in dial' + fromDp.toString());
+    print('in dial' + toFullname.toString());
+    print('in dial' + toDp.toString());
+    print('in dial' + toUID.toString());
+
     final result = await FirebaseFirestore.instance
         .collection(DbPaths.collectionusers)
-        .doc(fromUID).get();
-    // result['credits'];
-    if(result['credits'] <= 0){
+        .doc(fromUID)
+        .get();
+
+    if (result['credits'] <= 0) {
       print('in dial if');
       String call = isvideocall! ? 'video call' : 'audio call';
-      Fiberchat.toast('Not enough credit to use '+call);
+      Fiberchat.toast('Not enough credit to use ' + call);
       return;
     }
+    print("in else");
     int timeepoch = DateTime.now().millisecondsSinceEpoch;
     Call call = Call(
         timeepoch: timeepoch,

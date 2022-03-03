@@ -1479,7 +1479,9 @@ class _AudioCallState extends State<AudioCall> {
         _users.remove(uid);
       });
       _stopCallingSound();
-      if (isalreadyendedcall == false) {
+      if (isalreadyendedcall ==
+
+          false) {
         FirebaseFirestore.instance
             .collection(DbPaths.collectionusers)
             .doc(widget.call.callerId)
@@ -2635,9 +2637,9 @@ class _AudioCallState extends State<AudioCall> {
           .doc(widget.call.timeepoch.toString())
           .get();
       print(resultForStatus['STATUS']);
-      if (int.parse(secondsStr) % 30 == 0 &&
+      if (int.parse(secondsStr) == 00 &&
           widget.call.callerId == widget.currentuseruid) {
-        print("after 30 seconds");
+        print("after 30 seconds" + secondsStr);
         final result = await FirebaseFirestore.instance
             .collection(DbPaths.collectionusers)
             .doc(widget.currentuseruid)

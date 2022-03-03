@@ -3,6 +3,10 @@
 import 'dart:async';
 import 'dart:core';
 import 'dart:io';
+
+import 'package:encrypt/encrypt.dart' as encrypt;
+
+import 'package:fiberchat/Models/E2EE/e2ee.dart' as e2ee;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fiberchat/Configs/Dbkeys.dart';
 import 'package:fiberchat/Configs/Dbpaths.dart';
@@ -28,6 +32,7 @@ import 'package:fiberchat/Utils/open_settings.dart';
 import 'package:fiberchat/Utils/permissions.dart';
 import 'package:fiberchat/Utils/utils.dart';
 import 'package:fiberchat/widgets/Passcode/circle.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -42,6 +47,7 @@ import 'package:fiberchat/Utils/unawaited.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 
 import 'package:encrypt/encrypt.dart' as encrypt;
+
 class RecentChats extends StatefulWidget {
   RecentChats(
       {required this.currentUserNo,
@@ -78,45 +84,49 @@ class RecentChatsState extends State<RecentChats> {
   );
   AdWidget? adWidget;
   FlutterSecureStorage storage = new FlutterSecureStorage();
+  late encrypt.Encrypter cryptor;
   final iv = encrypt.IV.fromLength(8);
+  String? privateKey, sharedSecret;
+  String? publicKey;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   //
-  // String decryptWithCRC(String input) async{
-  //   try {
-  //
-  //     privateKey = await storage.read(key: Dbkeys.privateKey);
-  //     sharedSecret = (await e2ee.X25519().calculateSharedSecret(
-  //         e2ee.Key.fromBase64(privateKey!, false),
-  //         e2ee.Key.fromBase64(peer![Dbkeys.publicKey], true)))
-  //         .toBase64();
-  //   final key = encrypt.Key.fromBase64(sharedSecret);
-  //   final cryptor = new encrypt.Encrypter(encrypt.Salsa20(key));
-  //
-  //
-  //     if (input.contains(Dbkeys.crcSeperator)) {
-  //       int idx = input.lastIndexOf(Dbkeys.crcSeperator);
-  //       String msgPart = input.substring(0, idx);
-  //       String crcPart = input.substring(idx + 1);
-  //       int? crc = int.tryParse(crcPart);
-  //       if (crc != null) {
-  //         msgPart =
-  //             cryptor.decrypt(encrypt.Encrypted.fromBase64(msgPart), iv: iv);
-  //         if (CRC32.compute(msgPart) == crc) return msgPart;
-  //       }
-  //     }
-  //   } on FormatException {
-  //     Fiberchat.toast(getTranslated(this.context, 'msgnotload'));
-  //     return '';
-  //   }
-  //   Fiberchat.toast(getTranslated(this.context, 'msgnotload'));
-  //   return '';
-  // }
+  Future<String> decryptWithCRC(String input, String publicKey) async {
+    // print("called decryptWithCRC");
+    try {
+      privateKey = await storage.read(key: Dbkeys.privateKey);
 
+      sharedSecret = (await e2ee.X25519().calculateSharedSecret(
+              e2ee.Key.fromBase64(privateKey!, false),
+              e2ee.Key.fromBase64(publicKey!, true)))
+          .toBase64();
+      final key = encrypt.Key.fromBase64(sharedSecret!);
+
+      cryptor = new encrypt.Encrypter(encrypt.Salsa20(key));
+      if (input.contains(Dbkeys.crcSeperator)) {
+        int idx = input.lastIndexOf(Dbkeys.crcSeperator);
+        String msgPart = input.substring(0, idx);
+        String crcPart = input.substring(idx + 1);
+        int? crc = int.tryParse(crcPart);
+        if (crc != null) {
+          msgPart =
+              cryptor.decrypt(encrypt.Encrypted.fromBase64(msgPart), iv: iv);
+          if (CRC32.compute(msgPart) == crc) return msgPart;
+        }
+      }
+    } on FormatException {
+      Fiberchat.toast(getTranslated(this.context, 'msgnotload'));
+      return '';
+    }
+    Fiberchat.toast(getTranslated(this.context, 'msgnotload'));
+    return '';
+  }
 
   @override
   void initState() {
     super.initState();
     Fiberchat.internetLookUp();
+
     WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
       final observer = Provider.of<Observer>(this.context, listen: false);
       if (IsBannerAdShow == true && observer.isadmobshow == true) {
@@ -147,44 +157,6 @@ class RecentChatsState extends State<RecentChats> {
   bool isLoading = false;
   bool hasPeerBlockedMe = false;
 
-  // listenToBlock() {
-  //   chatStatusSubscriptionForPeer = FirebaseFirestore.instance
-  //       .collection(DbPaths.collectionusers)
-  //       .doc(widget.peerNo)
-  //       .collection(Dbkeys.chatsWith)
-  //       .doc(Dbkeys.chatsWith)
-  //       .snapshots()
-  //       .listen((doc) {
-  //     if (doc.data()!.containsKey(widget.currentUserNo)) {
-  //       print('CHANGED');
-  //       if (doc.data()![widget.currentUserNo] == 0) {
-  //         hasPeerBlockedMe = true;
-  //         setStateIfMounted(() {});
-  //       } else if (doc.data()![widget.currentUserNo] == 3) {
-  //         hasPeerBlockedMe = false;
-  //         setStateIfMounted(() {});
-  //       }
-  //     }
-  //   });
-  // }
-
-  call(BuildContext context, bool isvideocall) async {
-    // var mynickname = widget.prefs.getString(Dbkeys.nickname) ?? '';
-    //
-    // var myphotoUrl = widget.prefs.getString(Dbkeys.photoUrl) ?? '';
-    //
-    // CallUtils.dial(
-    //     currentuseruid: widget.currentUserNo,
-    //     fromDp: myphotoUrl,
-    //     toDp: peer!["photoUrl"],
-    //     fromUID: widget.currentUserNo,
-    //     fromFullname: mynickname,
-    //     toUID: widget.peerNo,
-    //     toFullname: peer!["nickname"],
-    //     context: context,
-    //     isvideocall: isvideocall);
-  }
-
   Widget buildItem(BuildContext context, Map<String, dynamic> user) {
     final observer = Provider.of<Observer>(this.context, listen: false);
     if (user[Dbkeys.phone] == currentUserNo) {
@@ -212,18 +184,22 @@ class RecentChatsState extends State<RecentChats> {
                       motion: DrawerMotion(),
                       children: [
                         CustomSlidableAction(
-                          onPressed: (context){
-                           return CallUtils.dial(
+                          onPressed: (context) {
+                            return CallUtils.dial(
                                 currentuseruid: widget.currentUserNo,
-                                fromDp: widget.prefs.getString(Dbkeys.photoUrl) ?? '',
+                                fromDp:
+                                    widget.prefs.getString(Dbkeys.photoUrl) ??
+                                        '',
                                 toDp: user!["photoUrl"],
                                 fromUID: widget.currentUserNo,
-                                fromFullname: widget.prefs.getString(Dbkeys.nickname) ?? '',
+                                fromFullname:
+                                    widget.prefs.getString(Dbkeys.nickname) ??
+                                        '',
                                 toUID: user[Dbkeys.phone] as String?,
                                 toFullname: user!["nickname"],
-                                context: context,
+                                context: _scaffoldKey.currentContext,
                                 isvideocall: false);
-                                    },
+                          },
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.green,
                           // icon: CupertinoIcons.phone,
@@ -240,15 +216,15 @@ class RecentChatsState extends State<RecentChats> {
                         CustomSlidableAction(
                           onPressed: (_) {
                             if (_cachedModel!.currentUser![Dbkeys.locked] !=
-                                null &&
+                                    null &&
                                 _cachedModel!.currentUser![Dbkeys.locked]
                                     .contains(user[Dbkeys.phone])) {
                               if (widget.prefs.getString(Dbkeys.isPINsetDone) !=
-                                  currentUserNo ||
+                                      currentUserNo ||
                                   widget.prefs.getString(Dbkeys.isPINsetDone) ==
                                       null) {
-                                ChatController.unlockChat(
-                                    currentUserNo, user[Dbkeys.phone] as String?);
+                                ChatController.unlockChat(currentUserNo,
+                                    user[Dbkeys.phone] as String?);
                                 Navigator.push(
                                     context,
                                     new MaterialPageRoute(
@@ -258,8 +234,8 @@ class RecentChatsState extends State<RecentChats> {
                                             unread: unread,
                                             model: _cachedModel!,
                                             currentUserNo: currentUserNo,
-                                            peerNo:
-                                            user[Dbkeys.phone] as String?)));
+                                            peerNo: user[Dbkeys.phone]
+                                                as String?)));
                               } else {
                                 NavigatorState state = Navigator.of(context);
                                 ChatController.authenticate(_cachedModel!,
@@ -269,16 +245,16 @@ class RecentChatsState extends State<RecentChats> {
                                     type: Fiberchat.getAuthenticationType(
                                         biometricEnabled, _cachedModel),
                                     prefs: widget.prefs, onSuccess: () {
-                                      state.pushReplacement(new MaterialPageRoute(
-                                          builder: (context) => new ChatScreen(
-                                              isSharingIntentForwarded: false,
-                                              prefs: widget.prefs,
-                                              unread: unread,
-                                              model: _cachedModel!,
-                                              currentUserNo: currentUserNo,
-                                              peerNo:
+                                  state.pushReplacement(new MaterialPageRoute(
+                                      builder: (context) => new ChatScreen(
+                                          isSharingIntentForwarded: false,
+                                          prefs: widget.prefs,
+                                          unread: unread,
+                                          model: _cachedModel!,
+                                          currentUserNo: currentUserNo,
+                                          peerNo:
                                               user[Dbkeys.phone] as String?)));
-                                    });
+                                });
                               }
                             } else {
                               Navigator.push(
@@ -291,7 +267,7 @@ class RecentChatsState extends State<RecentChats> {
                                           model: _cachedModel!,
                                           currentUserNo: currentUserNo,
                                           peerNo:
-                                          user[Dbkeys.phone] as String?)));
+                                              user[Dbkeys.phone] as String?)));
                             }
                           },
                           backgroundColor: Colors.white,
@@ -359,26 +335,35 @@ class RecentChatsState extends State<RecentChats> {
 
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
-                              return Text("Loading");
+                              //return Text("Loading");
+                            }
+                            if (snapshot.data == null) {
+                              return Text("");
                             }
                             Map<String, dynamic> result =
                                 snapshot.data!.docs.last.data()
                                     as Map<String, dynamic>;
-                            print('last ' + result['content']);
 
-                            return Text(
-                              'Hey , there today is meeting',
-                              // decryptWithCRC(result['content']),
-                              style: TextStyle(
-                                  color: Colors.black,
-                                  fontFamily: FONTFAMILY_NAME),
-                            );
+                            return FutureBuilder(
+                                future: decryptWithCRC(
+                                    result['content'], user[Dbkeys.publicKey]),
+                                builder: (context, snapshot) {
+                                  if (snapshot.data
+                                      .toString()
+                                      .contains('https')) {
+                                    return Text("Document");
+                                  }
+                                  return Text(
+                                    snapshot.data.toString(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontFamily: FONTFAMILY_NAME),
+                                  );
+                                });
                           },
                         ),
-
-                        //
-                        // Text('Hey , there today is meeting ', style: TextStyle(color: Colors.black,
-                        //     fontFamily: FONTFAMILY_NAME),),
                         onTap: () {
                           if (_cachedModel!.currentUser![Dbkeys.locked] !=
                                   null &&
@@ -442,9 +427,9 @@ class RecentChatsState extends State<RecentChats> {
                                     stream: FirebaseFirestore.instance
                                         .collection(DbPaths.collectionmessages)
                                         .doc(Fiberchat.getChatId(
-                                        currentUserNo, user[Dbkeys.phone]))
+                                            currentUserNo, user[Dbkeys.phone]))
                                         .collection(Fiberchat.getChatId(
-                                        currentUserNo, user[Dbkeys.phone]))
+                                            currentUserNo, user[Dbkeys.phone]))
                                         .snapshots(),
                                     builder: (context, snapshot) {
                                       if (snapshot.hasError) {
@@ -456,15 +441,15 @@ class RecentChatsState extends State<RecentChats> {
                                         return Text("Loading");
                                       }
                                       Map<String, dynamic> result =
-                                      snapshot.data!.docs.last.data()
-                                      as Map<String, dynamic>;
-                                      final date = DateTime.fromMillisecondsSinceEpoch(result['timestamp']);
-                                      //print('last ' + result['timestamp'].toString());
-
+                                          snapshot.data!.docs.last.data()
+                                              as Map<String, dynamic>;
+                                      final date =
+                                          DateTime.fromMillisecondsSinceEpoch(
+                                              result['timestamp']);
                                       return Text(
-                                        DateFormat('hh:mma').format(date).toString(),
-                                        //'Hey , there today is meeting',
-                                        // decryptWithCRC(result['content']),
+                                        DateFormat('hh:mma')
+                                            .format(date)
+                                            .toString(),
                                         style: TextStyle(
                                             color: Colors.black,
                                             fontFamily: FONTFAMILY_NAME),
@@ -494,39 +479,46 @@ class RecentChatsState extends State<RecentChats> {
                               )
                             : user[Dbkeys.lastSeen] == true
                                 ? Column(
-                                    children: [StreamBuilder<QuerySnapshot>(
-                                      stream: FirebaseFirestore.instance
-                                          .collection(DbPaths.collectionmessages)
-                                          .doc(Fiberchat.getChatId(
-                                          currentUserNo, user[Dbkeys.phone]))
-                                          .collection(Fiberchat.getChatId(
-                                          currentUserNo, user[Dbkeys.phone]))
-                                          .snapshots(),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.hasError) {
-                                          return Text('Something went wrong');
-                                        }
+                                    children: [
+                                      StreamBuilder<QuerySnapshot>(
+                                        stream: FirebaseFirestore.instance
+                                            .collection(
+                                                DbPaths.collectionmessages)
+                                            .doc(Fiberchat.getChatId(
+                                                currentUserNo,
+                                                user[Dbkeys.phone]))
+                                            .collection(Fiberchat.getChatId(
+                                                currentUserNo,
+                                                user[Dbkeys.phone]))
+                                            .snapshots(),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.hasError) {
+                                            return Text('Something went wrong');
+                                          }
 
-                                        if (snapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return Text("Loading");
-                                        }
-                                        Map<String, dynamic> result =
-                                        snapshot.data!.docs.last.data()
-                                        as Map<String, dynamic>;
-                                        final date = DateTime.fromMillisecondsSinceEpoch(result['timestamp']);
-                                        //print('last ' + result['timestamp'].toString());
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return Text("Loading");
+                                          }
+                                          Map<String, dynamic> result =
+                                              snapshot.data!.docs.last.data()
+                                                  as Map<String, dynamic>;
+                                          final date = DateTime
+                                              .fromMillisecondsSinceEpoch(
+                                                  result['timestamp']);
 
-                                        return Text(
-                                          DateFormat('hh:mma').format(date).toString(),
-                                          //'Hey , there today is meeting',
-                                          // decryptWithCRC(result['content']),
-                                          style: TextStyle(
-                                              color: Colors.black,
-                                              fontFamily: FONTFAMILY_NAME),
-                                        );
-                                      },
-                                    ),
+                                          return Text(
+                                            DateFormat('hh:mma')
+                                                .format(date)
+                                                .toString(),
+                                            //'Hey , there today is meeting',
+                                            // decryptWithCRC(result['content']),
+                                            style: TextStyle(
+                                                color: Colors.black,
+                                                fontFamily: FONTFAMILY_NAME),
+                                          );
+                                        },
+                                      ),
                                       Container(
                                         child: Container(width: 0, height: 0),
                                         padding: const EdgeInsets.all(7.0),
@@ -540,11 +532,14 @@ class RecentChatsState extends State<RecentChats> {
                                     children: [
                                       StreamBuilder<QuerySnapshot>(
                                         stream: FirebaseFirestore.instance
-                                            .collection(DbPaths.collectionmessages)
+                                            .collection(
+                                                DbPaths.collectionmessages)
                                             .doc(Fiberchat.getChatId(
-                                            currentUserNo, user[Dbkeys.phone]))
+                                                currentUserNo,
+                                                user[Dbkeys.phone]))
                                             .collection(Fiberchat.getChatId(
-                                            currentUserNo, user[Dbkeys.phone]))
+                                                currentUserNo,
+                                                user[Dbkeys.phone]))
                                             .snapshots(),
                                         builder: (context, snapshot) {
                                           if (snapshot.hasError) {
@@ -556,13 +551,16 @@ class RecentChatsState extends State<RecentChats> {
                                             return Text("Loading");
                                           }
                                           Map<String, dynamic> result =
-                                          snapshot.data!.docs.last.data()
-                                          as Map<String, dynamic>;
-                                          final date = DateTime.fromMillisecondsSinceEpoch(result['timestamp']);
-                                          //print('last ' + result['timestamp'].toString());
+                                              snapshot.data!.docs.last.data()
+                                                  as Map<String, dynamic>;
+                                          final date = DateTime
+                                              .fromMillisecondsSinceEpoch(
+                                                  result['timestamp']);
 
                                           return Text(
-                                            DateFormat('hh:mma').format(date).toString(),
+                                            DateFormat('hh:mma')
+                                                .format(date)
+                                                .toString(),
                                             //'Hey , there today is meeting',
                                             // decryptWithCRC(result['content']),
                                             style: TextStyle(
@@ -930,6 +928,7 @@ class RecentChatsState extends State<RecentChats> {
           ScopedModelDescendant<DataModel>(builder: (context, child, _model) {
         _cachedModel = _model;
         return Scaffold(
+          key: _scaffoldKey,
           bottomSheet: IsBannerAdShow == true &&
                   observer.isadmobshow == true &&
                   adWidget != null

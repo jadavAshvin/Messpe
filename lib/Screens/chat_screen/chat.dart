@@ -5269,7 +5269,7 @@ class _ChatScreenState extends State<ChatScreen> with WidgetsBindingObserver {
 
 
                         Scaffold(
-                          extendBodyBehindAppBar: true,
+                            extendBodyBehindAppBar: true,
                             backgroundColor: Colors.white,
                             key: _scaffold,
 

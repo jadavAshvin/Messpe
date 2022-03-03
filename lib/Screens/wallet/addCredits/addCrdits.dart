@@ -456,7 +456,13 @@ class _AddCreditsScreenState extends State<AddCreditsScreen> {
                 width: 300,
                 child: TextFormField(
                   cursorColor: primaryColors,
+                  keyboardType: TextInputType.number,
                   controller: controller,
+                  onChanged: (value){
+                    setState(() {
+                      controller.text = value;
+                    });
+                  },
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
                   ],
@@ -487,7 +493,8 @@ class _AddCreditsScreenState extends State<AddCreditsScreen> {
               ),
               InkWell(
                 onTap: () {
-                  if (controller.text.length > 0) {
+
+                  if (controller.text.length > 0 && controller.text.isNotEmpty) {
                     showDialog(
                         context: context,
                         builder: (BuildContext context) => confirmDialog);

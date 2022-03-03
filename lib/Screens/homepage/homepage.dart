@@ -1054,26 +1054,6 @@ class HomepageState extends State<Homepage>
   StreamController<String> _userQuery =
       new StreamController<String>.broadcast();
 
-  // void _changeLanguage(Language language) async {
-  //   Locale _locale = await setLocale(language.languageCode);
-  //   FiberchatWrapper.setLocale(context, _locale);
-  //   if (currentUserNo != null) {
-  //     Future.delayed(const Duration(milliseconds: 800), () {
-  //       FirebaseFirestore.instance
-  //           .collection(DbPaths.collectionusers)
-  //           .doc(currentUserNo)
-  //           .update({
-  //         Dbkeys.notificationStringsMap:
-  //             getTranslateNotificationStringsMap(this.context),
-  //       });
-  //     });
-  //   }
-  //   setState(() {
-  //     // seletedlanguage = language;
-  //   });
-
-  //   await widget.prefs.setBool('islanguageselected', true);
-  // }
 
   DateTime? currentBackPressTime = DateTime.now();
 
@@ -1362,7 +1342,10 @@ class HomepageState extends State<Homepage>
 
                               backgroundColor: Colors.white,
                               elevation: 0,
-                               title: Image.asset('$logo_ver', height: 50,),
+                              title: Image.asset(
+                                '$logo_ver',
+                                height: 50,
+                              ),
                               // title: Text(
                               //   Appname,
                               //   style: TextStyle(
@@ -1427,91 +1410,83 @@ class HomepageState extends State<Homepage>
                                         userphone: widget.currentUserNo,
                                         prefs: widget.prefs,
                                       ),
-
-                            // TabBarView(
-                            //   controller:
-                            //       observer.isCallFeatureTotallyHide == false
-                            //           ? controllerIfcallallowed
-                            //           : controllerIfcallNotallowed,
-                            //   children: observer.isCallFeatureTotallyHide ==
-                            //           false
-                            //       ? <Widget>[
-                            //           // SearchChats(
-                            //           //     prefs: widget.prefs,
-                            //           //     currentUserNo: widget.currentUserNo,
-                            //           //     isSecuritySetupDone:
-                            //           //         widget.isSecuritySetupDone),
-                            //           RecentChats(
-                            //               prefs: widget.prefs,
-                            //               currentUserNo: widget.currentUserNo,
-                            //               isSecuritySetupDone:
-                            //                   widget.isSecuritySetupDone),
-                            //           Status(
-                            //               currentUserFullname: userFullname,
-                            //               currentUserPhotourl: userPhotourl,
-                            //               phoneNumberVariants:
-                            //                   this.phoneNumberVariants,
-                            //               currentUserNo: currentUserNo,
-                            //               model: _cachedModel,
-                            //               biometricEnabled: biometricEnabled,
-                            //               prefs: widget.prefs),
-                            //           CallHistory(
-                            //             userphone: widget.currentUserNo,
-                            //             prefs: widget.prefs,
-                            //           ),
-                            //         ]
-                            //       : <Widget>[
-                            //           // SearchChats(
-                            //           //     prefs: widget.prefs,
-                            //           //     currentUserNo: widget.currentUserNo,
-                            //           //     isSecuritySetupDone:
-                            //           //         widget.isSecuritySetupDone),
-                            //           RecentChats(
-                            //               prefs: widget.prefs,
-                            //               currentUserNo: widget.currentUserNo,
-                            //               isSecuritySetupDone:
-                            //                   widget.isSecuritySetupDone),
-                            //           Status(
-                            //               currentUserFullname: userFullname,
-                            //               currentUserPhotourl: userPhotourl,
-                            //               phoneNumberVariants:
-                            //                   this.phoneNumberVariants,
-                            //               currentUserNo: currentUserNo,
-                            //               model: _cachedModel,
-                            //               biometricEnabled: biometricEnabled,
-                            //               prefs: widget.prefs),
-                            //         ],
-                            // ),
-                            //
                             bottomNavigationBar: Container(
                               decoration: BoxDecoration(
+                                borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(20),
+                                    topLeft: Radius.circular(20)),
                                 color: Colors.white,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: primaryColors.withOpacity(0.3),
+                                    color: primaryColors.withOpacity(0.2),
                                     spreadRadius: 0,
                                     blurRadius: 15,
                                     offset: Offset(
-                                        0, 4), // changes position of shadow
+                                        0, -4), // changes position of shadow
                                   ),
                                 ],
                               ),
                               width: MediaQuery.of(context).size.width,
                               height: 60,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Expanded(
-                                    child: InkWell(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.only(
+                                    topRight: Radius.circular(20),
+                                    topLeft: Radius.circular(20)),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Expanded(
+                                      child: InkWell(
+                                        onTap: () {
+                                          setState(() {
+                                            currentScreen = 0;
+                                          });
+                                        },
+                                        child: Container(
+                                          height: 60,
+                                          color: currentScreen == 0
+                                              ? Colors.white
+                                              : primaryColors,
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                CupertinoIcons.bubble_left,
+                                                color: currentScreen == 0
+                                                    ? primaryColors
+                                                    : Colors.white,
+                                                size: 25,
+                                              ),
+                                              SizedBox(
+                                                width: 5,
+                                              ),
+                                              Text(
+                                                'Chats',
+                                                style: TextStyle(
+                                                    fontSize: 18,
+                                                    color: currentScreen == 0
+                                                        ? primaryColors
+                                                        : Colors.white,
+                                                    fontWeight:
+                                                        FontWeight.w400),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                        child: InkWell(
                                       onTap: () {
                                         setState(() {
-                                          currentScreen = 0;
+                                          currentScreen = 1;
                                         });
                                       },
                                       child: Container(
                                         height: 60,
-                                        color: currentScreen == 0
+                                        color: currentScreen == 1
                                             ? Colors.white
                                             : primaryColors,
                                         child: Row(
@@ -1519,8 +1494,8 @@ class HomepageState extends State<Homepage>
                                               MainAxisAlignment.center,
                                           children: [
                                             Icon(
-                                              CupertinoIcons.bubble_left,
-                                              color: currentScreen == 0
+                                              CupertinoIcons.smiley,
+                                              color: currentScreen == 1
                                                   ? primaryColors
                                                   : Colors.white,
                                               size: 25,
@@ -1529,10 +1504,10 @@ class HomepageState extends State<Homepage>
                                               width: 5,
                                             ),
                                             Text(
-                                              'Chats',
+                                              'Stories',
                                               style: TextStyle(
                                                   fontSize: 18,
-                                                  color: currentScreen == 0
+                                                  color: currentScreen == 1
                                                       ? primaryColors
                                                       : Colors.white,
                                                   fontWeight: FontWeight.w400),
@@ -1540,87 +1515,48 @@ class HomepageState extends State<Homepage>
                                           ],
                                         ),
                                       ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                      child: InkWell(
-                                    onTap: () {
-                                      setState(() {
-                                        currentScreen = 1;
-                                      });
-                                    },
-                                    child: Container(
-                                      height: 60,
-                                      color: currentScreen == 1
-                                          ? Colors.white
-                                          : primaryColors,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            CupertinoIcons.smiley,
-                                            color: currentScreen == 1
-                                                ? primaryColors
-                                                : Colors.white,
-                                            size: 25,
-                                          ),
-                                          SizedBox(
-                                            width: 5,
-                                          ),
-                                          Text(
-                                            'Stories',
-                                            style: TextStyle(
-                                                fontSize: 18,
-                                                color: currentScreen == 1
-                                                    ? primaryColors
-                                                    : Colors.white,
-                                                fontWeight: FontWeight.w400),
-                                          ),
-                                        ],
+                                    )),
+                                    Expanded(
+                                        child: InkWell(
+                                      onTap: () {
+                                        setState(() {
+                                          currentScreen = 2;
+                                        });
+                                      },
+                                      child: Container(
+                                        height: 60,
+                                        color: currentScreen == 2
+                                            ? Colors.white
+                                            : primaryColors,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              CupertinoIcons.phone,
+                                              color: currentScreen == 2
+                                                  ? primaryColors
+                                                  : Colors.white,
+                                              size: 25,
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Text(
+                                              'Call',
+                                              style: TextStyle(
+                                                  fontSize: 18,
+                                                  color: currentScreen == 2
+                                                      ? primaryColors
+                                                      : Colors.white,
+                                                  fontWeight: FontWeight.w400),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  )),
-                                  Expanded(
-                                      child: InkWell(
-                                    onTap: () {
-                                      setState(() {
-                                        currentScreen = 2;
-                                      });
-                                    },
-                                    child: Container(
-                                      height: 60,
-                                      color: currentScreen == 2
-                                          ? Colors.white
-                                          : primaryColors,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            CupertinoIcons.phone,
-                                            color: currentScreen == 2
-                                                ? primaryColors
-                                                : Colors.white,
-                                            size: 25,
-                                          ),
-                                          SizedBox(
-                                            width: 5,
-                                          ),
-                                          Text(
-                                            'Call',
-                                            style: TextStyle(
-                                                fontSize: 18,
-                                                color: currentScreen == 2
-                                                    ? primaryColors
-                                                    : Colors.white,
-                                                fontWeight: FontWeight.w400),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )),
-                                ],
+                                    )),
+                                  ],
+                                ),
                               ),
                             )
                             // Container(
