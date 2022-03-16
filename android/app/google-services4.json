@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "181953101872",
+    "project_id": "messpe-494e0",
+    "storage_bucket": "messpe-494e0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:181953101872:android:4be0f30817f2e41bc2adf5",
+        "android_client_info": {
+          "package_name": "com.messpe.myapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "181953101872-mfmnkj8kl0mjcnf7jl4h74hg79kp0sea.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.messpe.myapp",
+            "certificate_hash": "89ed0e8d3d69b3047fb17a88bf156807039d4791"
+          }
+        },
+        {
+          "client_id": "181953101872-r8u1e7e1c1180q007t2ke0tbqpvpbtb8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.messpe.myapp",
+            "certificate_hash": "19a2fc7082cddaed120eead6e975104dc4568466"
+          }
+        },
+        {
+          "client_id": "181953101872-lgkkcvgev7jna9344hv27re1bs0jhhpk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxANXOCFxm5Izc842jKwmzvJ6pOx7pEgU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "181953101872-lgkkcvgev7jna9344hv27re1bs0jhhpk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

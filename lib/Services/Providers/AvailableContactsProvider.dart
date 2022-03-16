@@ -295,8 +295,10 @@ class AvailableContactsProvider with ChangeNotifier {
   List<DocumentSnapshot> storedUserDoc = [];
 
   Future<DocumentSnapshot> getUserDoc(String phone) async {
+    print("called  in getUserDoc");
     if (storedUserDoc.indexWhere((element) => element[Dbkeys.phone] == phone) >=
         0) {
+      print("in if");
       return storedUserDoc[storedUserDoc
           .indexWhere((element) => element[Dbkeys.phone] == phone)];
     } else {
@@ -305,7 +307,9 @@ class AvailableContactsProvider with ChangeNotifier {
           .doc(phone)
           .get();
       storedUserDoc.add(doc);
-
+      doc.data()!.forEach((key, value) {
+        print(key + ":"+ value);
+      });
       return doc;
     }
   }

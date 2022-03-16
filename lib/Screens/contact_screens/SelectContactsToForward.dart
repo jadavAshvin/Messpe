@@ -304,7 +304,9 @@ class _SelectContactsToForwardState extends State<SelectContactsToForward>
                                 )
                               : SizedBox(),
                           key: _scaffold,
+
                           backgroundColor: fiberchatWhite,
+
                           appBar: AppBar(
                             actions: <Widget>[
                               selectedDynamicListFORUSERS.length != 0 ||
@@ -362,6 +364,8 @@ class _SelectContactsToForwardState extends State<SelectContactsToForward>
                               ),
                             ),
                           ),
+
+
                           body: RefreshIndicator(
                             onRefresh: () {
                               return contactsProvider.fetchContacts(context,

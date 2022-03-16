@@ -40,11 +40,12 @@ class _ContactsSelectState extends State<ContactsSelect>
     with AutomaticKeepAliveClientMixin {
   Map<String?, String?>? contacts;
   Map<String?, String?> _filtered = new Map<String, String>();
+  Map<String?, String?> _suggetions = new Map<String, String>();
 
   @override
   bool get wantKeepAlive => true;
-
   final TextEditingController _filter = new TextEditingController();
+  late String _query;
 
   @override
   void dispose() {
@@ -52,6 +53,28 @@ class _ContactsSelectState extends State<ContactsSelect>
     _filter.dispose();
   }
 
+
+  _ContactsSelectState() {
+    _filter.addListener(() {
+      if (_filter.text.isEmpty) {
+        setState(() {
+          _query = "";
+          this._filtered = this.contacts!;
+        });
+      } else {
+        setState(() {
+          _query = _filter.text;
+          this._filtered =
+              Map.fromEntries(this.contacts!.entries.where((MapEntry contact) {
+                return contact.value
+                    .toLowerCase()
+                    .trim()
+                    .contains(new RegExp(r'' + _query.toLowerCase().trim() + ''));
+              }));
+        });
+      }
+    });
+  }
   loading() {
     return Stack(children: [
       Container(
@@ -106,7 +129,7 @@ class _ContactsSelectState extends State<ContactsSelect>
       c.removeWhere((key, val) => _isHidden(key));
       if (mounted) {
         setState(() {
-          this.contacts = this._filtered = c;
+          this.contacts = this._filtered = _suggetions=  c;
         });
       }
     });
@@ -162,10 +185,95 @@ class _ContactsSelectState extends State<ContactsSelect>
 
   Widget _appBarTitle = Text('');
 
+  Icon _searchIcon = new Icon(
+    Icons.search,
+    color: DESIGN_TYPE == Themetype.whatsapp ? fiberchatWhite : fiberchatBlack,
+  );
+  // void _searchContact(String input){
+  //   print("called in _searchContact");
+  //   Map<String,String> suggesion = Map<String,String>();
+  //   _suggetions.forEach((key, value) {
+  //     print("called in foreach");
+  //   final keyn = key!.toLowerCase();
+  //   final newValue = value!.toLowerCase();
+  //   final query = input.toLowerCase();
+  //   if(keyn == query || newValue == query){
+  //    suggesion.update(key, (value) => value);
+  //   }
+  //   });
+  //   _filtered = suggesion;
+  //   setState(() {
+  //
+  //   });
+  // }
+  //
+  void _searchPressed() {
+    setState(() {
+      if (this._searchIcon.icon == Icons.search) {
+        this._searchIcon = new Icon(
+          Icons.close,
+          color: DESIGN_TYPE == Themetype.whatsapp
+              ? fiberchatWhite
+              : fiberchatBlack,
+        );
+        this._appBarTitle = new TextField(
+          textCapitalization: TextCapitalization.sentences,
+          autofocus: true,
+          style: TextStyle(
+            color: DESIGN_TYPE == Themetype.whatsapp
+                ? fiberchatWhite
+                : fiberchatBlack,
+            fontSize: 18.5,
+            fontWeight: FontWeight.w600,
+          ),
+          onChanged: (value){
+            print("cahnges");
+          //  _searchContact(value);
+          },
+          controller: _filter,
+          decoration: new InputDecoration(
+              labelStyle: TextStyle(
+                color: DESIGN_TYPE == Themetype.whatsapp
+                    ? fiberchatWhite
+                    : fiberchatBlack,
+              ),
+              focusedBorder: InputBorder.none,
+              hintText: getTranslated(context, 'search'),
+              hintStyle: TextStyle(
+                fontSize: 18.5,
+                color: DESIGN_TYPE == Themetype.whatsapp
+                    ? fiberchatWhite.withOpacity(0.7)
+                    : fiberchatGrey,
+              )),
+        );
+      } else {
+        this._searchIcon = new Icon(
+          Icons.search,
+          color: DESIGN_TYPE == Themetype.whatsapp
+              ? fiberchatWhite
+              : fiberchatBlack,
+        );
+        this._appBarTitle = new Text(
+          getTranslated(context, 'searchcontact'),
+          style: TextStyle(
+            fontSize: 18.5,
+            color: DESIGN_TYPE == Themetype.whatsapp
+                ? fiberchatWhite
+                : fiberchatBlack,
+          ),
+        );
+
+        _filter.clear();
+      }
+    });
+    setState(() {});
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
-
     return PickupLayout(
         scaffold: Fiberchat.getNTPWrappedWidget(ScopedModel<DataModel>(
             model: widget.model!,
@@ -193,10 +301,10 @@ class _ContactsSelectState extends State<ContactsSelect>
                         centerTitle: false,
                         title: _appBarTitle,
                         actions: <Widget>[
-                          // IconButton(
-                          //   icon: _searchIcon,
-                          //   onPressed: _searchPressed,
-                          // )
+                          IconButton(
+                            icon: _searchIcon,
+                            onPressed: _searchPressed,
+                          )
                         ],
                       ),
                       body: contacts == null
@@ -231,14 +339,18 @@ class _ContactsSelectState extends State<ContactsSelect>
                                         MapEntry user =
                                             _filtered.entries.elementAt(idx);
                                         String phone = user.key;
+                                        _filtered.forEach((key, value) { print(key! + " : "+value!);});
+                                    //return Text("Hello");
                                         return FutureBuilder(
                                             future: contactsProvider
                                                 .getUserDoc(phone),
                                             builder: (BuildContext context,
                                                 AsyncSnapshot snapshot) {
+
                                               if (snapshot.hasData) {
                                                 var userDoc =
                                                     snapshot.data!.data();
+
                                                 return ListTile(
                                                   leading: CircleAvatar(
                                                       backgroundColor:
@@ -301,7 +413,9 @@ class _ContactsSelectState extends State<ContactsSelect>
                                                 },
                                               );
                                             });
-                                      },
+
+
+                                        },
                                     ))));
             }))));
   }

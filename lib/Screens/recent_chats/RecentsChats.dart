@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:core';
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 
 import 'package:fiberchat/Models/E2EE/e2ee.dart' as e2ee;
@@ -190,13 +191,13 @@ class RecentChatsState extends State<RecentChats> {
                                 fromDp:
                                     widget.prefs.getString(Dbkeys.photoUrl) ??
                                         '',
-                                toDp: user!["photoUrl"],
+                                toDp: user["photoUrl"],
                                 fromUID: widget.currentUserNo,
                                 fromFullname:
                                     widget.prefs.getString(Dbkeys.nickname) ??
                                         '',
                                 toUID: user[Dbkeys.phone] as String?,
-                                toFullname: user!["nickname"],
+                                toFullname: user["nickname"],
                                 context: _scaffoldKey.currentContext,
                                 isvideocall: false);
                           },
@@ -307,8 +308,123 @@ class RecentChatsState extends State<RecentChats> {
                                 return AliasForm(user, _cachedModel);
                               }));
                         },
-                        leading: customClipRRectGroup(
-                            url: user['photoUrl'], radius: 10),
+                        leading: InkWell(
+                          onTap: () {
+                            showGeneralDialog(
+                                barrierColor: Colors.black.withOpacity(0.5),
+                                transitionBuilder: (context, a1, a2, widget) {
+                                  return Transform.scale(
+                                    scale: a1.value,
+                                    child: Opacity(
+                                        opacity: a1.value,
+                                        child: Dialog(
+                                          child: CachedNetworkImage(
+                                            imageUrl: user['photoUrl'],
+                                            imageBuilder:
+                                                (context, imageProvider) =>
+                                                    Container(
+                                              child: Stack(
+                                                children: [
+                                                  Container(
+                                                    height: 250,
+                                                    width: double.infinity,
+                                                    child: Image.network(
+                                                      '${user['photoUrl']}',
+                                                      fit: BoxFit.fill,
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    height: 40,
+                                                    width: double.infinity,
+                                                    color: Colors.black
+                                                        .withOpacity(0.2),
+                                                    child: Align(
+                                                      alignment:
+                                                          Alignment.centerLeft,
+                                                      child: Text(
+                                                        '  ' +
+                                                            Fiberchat
+                                                                .getNickname(
+                                                                    user)!,
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 16,
+                                                          fontWeight: FontWeight.bold,
+                                                          fontFamily:
+                                                              FONTFAMILY_NAME,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                            placeholder: (context, url) =>
+                                                CircleAvatar(
+                                              backgroundColor:
+                                                  Color(0xffE6E6E6),
+                                              radius: 30,
+                                              child: Icon(
+                                                Icons.add,
+                                                color: Color(0xffCCCCCC),
+                                              ),
+                                            ),
+                                            errorWidget:
+                                                (context, url, error) => Stack(
+                                              children: [
+                                                Container(
+                                                  height: 250,
+                                                  alignment: Alignment.center,
+                                                  color: Color(0xffE6E6E6),
+                                                  child: Icon(Icons.person,
+                                                      size: 200,
+                                                      color: Color(0xffCCCCCC)),
+                                                ),
+                                                Container(
+                                                  height: 40,
+                                                  width: double.infinity,
+                                                  color: Colors.black
+                                                      .withOpacity(0.2),
+                                                  child: Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Text(
+                                                      '  ' +
+                                                          Fiberchat.getNickname(
+                                                              user)!,
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontFamily:
+                                                            FONTFAMILY_NAME,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        )),
+                                  );
+                                },
+                                transitionDuration: Duration(milliseconds: 200),
+                                barrierDismissible: true,
+                                barrierLabel: '',
+                                context: context,
+                                pageBuilder: (context, animation1, animation2) {
+                                  return Text("Add");
+                                });
+                          },
+                          child: customClipRRectGroup(
+                              url: user['photoUrl'], radius: 10),
+                        ),
                         // customCircleAvatar(url: user['photoUrl'], radius: 22),
                         title: Text(
                           Fiberchat.getNickname(user)!,

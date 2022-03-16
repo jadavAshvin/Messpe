@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "181953101872-p64gdec4u64c9bb26eansk2uchkbmr7i.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.messpe.myapp",
+            "certificate_hash": "dc5a7c8335008fe55d2ea4deca35f397763a9019"
+          }
+        },
+        {
           "client_id": "181953101872-r8u1e7e1c1180q007t2ke0tbqpvpbtb8.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -45,6 +53,13 @@
             {
               "client_id": "181953101872-lgkkcvgev7jna9344hv27re1bs0jhhpk.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "181953101872-ashtmekdmbg5faomvspjjjvsh9cavh44.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.messpe.myapp"
+              }
             }
           ]
         }
